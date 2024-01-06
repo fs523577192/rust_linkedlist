@@ -148,9 +148,26 @@ mod tests {
         assert_eq!(list.set(0, new_value0), Ok(value0));
         assert_eq!(list.size(), 1);
         assert_eq!(list.get(0), Ok(new_value0));
+    }
+
+    #[test]
+    fn test_list_one_item_index_out_of_bounds() {
+        let mut rng = rand::thread_rng();
+        let value0: i32 = rng.gen();
+
+        let mut list = new_list();
+        assert!(list.add(0, value0).is_ok());
 
         assert_eq!(list.get(1), Err("Index out of bounds"));
         assert_eq!(list.get(2), Err("Index out of bounds"));
+        
+        assert_eq!(list.set(1, rng.gen()), Err("Index out of bounds"));
+        assert_eq!(list.set(2, rng.gen()), Err("Index out of bounds"));
+        
+        for i in 2..4 {
+            let result = list.add(i, rng.gen());
+            assert!(result.is_err_and(|msg| msg == "Index out of bounds"));
+        }
     }
 
     #[test]
@@ -173,21 +190,97 @@ mod tests {
         assert_eq!(list.size(), 2);
         assert_eq!(list.get(0), Ok(new_value0));
         assert_eq!(list.get(1), Ok(new_value1));
+    }
+
+    #[test]
+    fn test_list_two_items_index_out_of_bounds() {
+        let mut rng = rand::thread_rng();
+        let value0: i32 = rng.gen();
+        let value1: i32 = rng.gen();
+
+        let mut list = new_list();
+        assert!(list.add(0, value1).is_ok());
+        assert!(list.add(0, value0).is_ok());
 
         assert_eq!(list.get(2), Err("Index out of bounds"));
         assert_eq!(list.get(3), Err("Index out of bounds"));
+        
+        assert_eq!(list.set(2, rng.gen()), Err("Index out of bounds"));
+        assert_eq!(list.set(3, rng.gen()), Err("Index out of bounds"));
+        
+        for i in 3..5 {
+            let result = list.add(i, rng.gen());
+            assert!(result.is_err_and(|msg| msg == "Index out of bounds"));
+        }
     }
 
-    // #[test]
-    // fn test_list_add() {
-    //     let mut list = new_list();
+    #[test]
+    fn test_list_three_items() {
+        let mut rng = rand::thread_rng();
+        let value0: i32 = rng.gen();
+        let value1: i32 = rng.gen();
+        let value2: i32 = rng.gen();
+        
+        let mut list = new_list();
+        assert!(list.add(0, value2).is_ok());
+        assert!(list.add(0, value1).is_ok());
+        assert!(list.add(0, value0).is_ok());
+        assert_eq!(list.size(), 3);
+        assert_eq!(list.get(0), Ok(value0));
+        assert_eq!(list.get(1), Ok(value1));
+        assert_eq!(list.get(2), Ok(value2));
 
-    //     list.add(0, 1);
-    //     list.add(1, 2);
-    //     list.add(2, 3);
+        let new_value0: i32 = rng.gen();
+        let new_value1: i32 = rng.gen();
+        let new_value2: i32 = rng.gen();
+        assert_eq!(list.set(0, new_value0), Ok(value0));
+        assert_eq!(list.set(1, new_value1), Ok(value1));
+        assert_eq!(list.set(2, new_value2), Ok(value2));
+        assert_eq!(list.size(), 3);
+        assert_eq!(list.get(0), Ok(new_value0));
+        assert_eq!(list.get(1), Ok(new_value1));
+        assert_eq!(list.get(2), Ok(new_value2));
+    }
 
-    //     assert_eq!(list.size(), 3);
-    // }
+    #[test]
+    fn test_list_three_items_index_out_of_bounds() {
+        let mut rng = rand::thread_rng();
+        let value0: i32 = rng.gen();
+        let value1: i32 = rng.gen();
+        let value2: i32 = rng.gen();
+        
+        let mut list = new_list();
+        assert!(list.add(0, value2).is_ok());
+        assert!(list.add(0, value1).is_ok());
+        assert!(list.add(0, value0).is_ok());
+        
+        assert_eq!(list.get(3), Err("Index out of bounds"));
+        assert_eq!(list.get(4), Err("Index out of bounds"));
+        
+        assert_eq!(list.set(3, rng.gen()), Err("Index out of bounds"));
+        assert_eq!(list.set(4, rng.gen()), Err("Index out of bounds"));
+        
+        for i in 4..6 {
+            let result = list.add(i, rng.gen());
+            assert!(result.is_err_and(|msg| msg == "Index out of bounds"));
+        }
+    }
+
+    #[test]
+    fn test_list_add() {
+        let mut rng = rand::thread_rng();
+        let size: u32 = rng.gen_range(0..65536);
+
+        let mut list = new_list();
+
+        for i in 0..size {
+            let index: u32 = rng.gen_range(0..(i+1));
+            let value: i32 = rng.gen();
+            assert!(list.add(index, value).is_ok());
+            assert_eq!(list.size(), i + 1);
+            assert_eq!(list.get(index), Ok(value));
+        }
+    }
 
     // #[test]
     // fn test_list_remove() {
