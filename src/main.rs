@@ -67,6 +67,7 @@ impl<T: Copy> List<T> for LinkedList<T> {
             ));
             return Ok(self);
         }
+        
         let mut current = &mut self.head;
         for _ in 1..index {
             if let Some(node) = current {
@@ -87,7 +88,35 @@ impl<T: Copy> List<T> for LinkedList<T> {
     }
 
     fn remove(&mut self, index: u32) -> Result<T, &str> {
-        return Err("Not implemented");
+        if index == 0 {
+            if let Some(mut node) = self.head.take() {
+                let result = Ok(node.value);
+                self.head = node.next.take();
+                return result;
+            } else {
+                return Err("Index out of bounds");
+            }
+        }
+        
+        let mut current = &mut self.head;
+        for _ in 1..index {
+            if let Some(node) = current {
+                current = &mut node.next;
+            } else {
+                return Err("Index out of bounds");
+            }
+        }
+        if let Some(current_node) = current {
+            let next = current_node.next.take();
+            if let Some(next_node) = next {
+                current_node.next = next_node.next;
+                return Ok(next_node.value);
+            } else {
+                return Err("Index out of bounds");
+            }
+        } else {
+            return Err("Index out of bounds");
+        }
     }
 }
 
@@ -125,6 +154,13 @@ mod tests {
     }
 
     #[test]
+    fn test_list_remove_empty() {
+        let mut list = new_list();
+        assert_eq!(list.remove(0), Err("Index out of bounds"));
+        assert_eq!(list.remove(1), Err("Index out of bounds"));
+    }
+
+    #[test]
     fn test_list_add_empty() {
         let mut rng = rand::thread_rng();
         let mut list = new_list();
@@ -143,6 +179,10 @@ mod tests {
         assert!(list.add(0, value0).is_ok());
         assert_eq!(list.size(), 1);
         assert_eq!(list.get(0), Ok(value0));
+
+        assert_eq!(list.remove(0), Ok(value0)); // remove the only item
+        assert_eq!(list.size(), 0);
+        assert!(list.add(0, value0).is_ok());
 
         let new_value0: i32 = rng.gen();
         assert_eq!(list.set(0, new_value0), Ok(value0));
@@ -182,6 +222,10 @@ mod tests {
         assert_eq!(list.size(), 2);
         assert_eq!(list.get(0), Ok(value0));
         assert_eq!(list.get(1), Ok(value1));
+
+        assert_eq!(list.remove(0), Ok(value0)); // remove the first item
+        assert_eq!(list.size(), 1);
+        assert!(list.add(0, value0).is_ok());
 
         let new_value0: i32 = rng.gen();
         let new_value1: i32 = rng.gen();
@@ -230,6 +274,13 @@ mod tests {
         assert_eq!(list.get(1), Ok(value1));
         assert_eq!(list.get(2), Ok(value2));
 
+        assert_eq!(list.remove(1), Ok(value1)); // remove an item in middle
+        assert_eq!(list.size(), 2);
+        assert!(list.add(1, value1).is_ok());
+        assert_eq!(list.remove(2), Ok(value2)); // remove the last item
+        assert_eq!(list.size(), 2);
+        assert!(list.add(2, value2).is_ok());
+        
         let new_value0: i32 = rng.gen();
         let new_value1: i32 = rng.gen();
         let new_value2: i32 = rng.gen();
@@ -303,7 +354,7 @@ mod tests {
     #[test]
     fn test_list_add() {
         let mut rng = rand::thread_rng();
-        let size: u32 = rng.gen_range(0..512);
+        let size: u32 = rng.gen_range(0..8192);
 
         let mut list = new_list();
 
@@ -314,19 +365,11 @@ mod tests {
             assert!(list.add(index, value).is_ok());
             assert_eq!(list.size(), new_size);
             assert_eq!(list.get(index), Ok(value));
+            assert_eq!(list.remove(index), Ok(value));
+            assert_eq!(list.size(), current_size);
+            assert!(list.add(index, value).is_ok());
         }
     }
-
-    // #[test]
-    // fn test_list_remove() {
-    //     let mut list = new_list();
-    //     list.add(0, 1);
-    //     list.add(1, 2);
-    //     list.add(2, 3);
-
-    //     assert_eq!(list.remove(1), Some(2));
-    //     assert_eq!(list.size(), 2);
-    // }
 
 }
 
